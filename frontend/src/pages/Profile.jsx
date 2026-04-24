@@ -1,18 +1,22 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
-import { User as UserIcon, Mail, Trophy, Flame, CheckCircle } from 'lucide-react';
+import { User as UserIcon, Mail, Trophy, Flame, CheckCircle, Target } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [goalInput, setGoalInput] = useState('');
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalMsg, setGoalMsg] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await api.get('/user/profile');
         setStats(res.data);
+        setGoalInput(String(res.data.dailyGoal || 3));
       } catch (err) {
         console.error(err);
       } finally {
@@ -21,6 +25,25 @@ const Profile = () => {
     };
     fetchStats();
   }, []);
+
+  const saveGoal = async () => {
+    const val = parseInt(goalInput, 10);
+    if (isNaN(val) || val < 1 || val > 50) {
+      setGoalMsg({ type: 'error', text: 'Enter a number between 1 and 50' });
+      return;
+    }
+    setGoalSaving(true);
+    setGoalMsg(null);
+    try {
+      const res = await api.put('/user/goal', { dailyGoal: val });
+      setStats(prev => ({ ...prev, dailyGoal: res.data.dailyGoal }));
+      setGoalMsg({ type: 'success', text: 'Goal updated!' });
+    } catch {
+      setGoalMsg({ type: 'error', text: 'Failed to update goal' });
+    } finally {
+      setGoalSaving(false);
+    }
+  };
 
   if (loading) return <div style={{ padding: '2rem' }}>Loading profile...</div>;
 
@@ -82,6 +105,44 @@ const Profile = () => {
               <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--text-main)' }}>{stats?.longestStreak || 0} days</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <Target size={20} style={{ color: 'var(--primary)' }} />
+          <h2 style={{ fontSize: '1.125rem', fontWeight: '700' }}>Daily Goal</h2>
+        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+          Set how many problems you want to solve each day.
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <input
+            type="number"
+            min="1"
+            max="50"
+            value={goalInput}
+            onChange={e => setGoalInput(e.target.value)}
+            className="input-field"
+            style={{ width: '100px' }}
+          />
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>problems / day</span>
+          <button
+            className="btn btn-primary"
+            onClick={saveGoal}
+            disabled={goalSaving}
+          >
+            {goalSaving ? <span className="btn-spinner" /> : 'Save'}
+          </button>
+          {goalMsg && (
+            <span style={{
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: goalMsg.type === 'success' ? 'var(--success)' : 'var(--danger)'
+            }}>
+              {goalMsg.text}
+            </span>
+          )}
         </div>
       </div>
     </div>
