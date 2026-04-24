@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
-import { Flame, Trophy, CheckCircle, Activity } from 'lucide-react';
+import { Flame, Trophy, CheckCircle, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const QUOTES = [
@@ -89,6 +89,30 @@ const Dashboard = () => {
           <div>
             <div className="card-title">Longest Streak</div>
             <div className="card-value">{stats?.longestStreak || 0} <span className="card-value-unit">days</span></div>
+          </div>
+        </div>
+
+        <div className="card stat-card stat-card-primary">
+          <div className="stat-icon-wrap stat-icon-primary">
+            <Target size={22} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="card-title">Today's Goal</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+              <span className="card-value">{stats?.todaySolved || 0}</span>
+              <span className="card-value-unit">/ {stats?.dailyGoal || 3}</span>
+            </div>
+            <div className="progress-container" style={{ marginTop: '0.5rem' }}>
+              <div
+                className="progress-bar progress-bar-animated"
+                style={{
+                  width: `${Math.min(100, Math.round(((stats?.todaySolved || 0) / (stats?.dailyGoal || 3)) * 100))}%`,
+                  background: (stats?.todaySolved || 0) >= (stats?.dailyGoal || 3)
+                    ? 'linear-gradient(90deg, var(--success), #059669)'
+                    : undefined
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

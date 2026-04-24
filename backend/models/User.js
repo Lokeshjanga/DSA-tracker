@@ -6,7 +6,8 @@ const UserSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     currentStreak: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
-    lastActiveDate: { type: Date, default: null }
+    lastActiveDate: { type: Date, default: null },
+    dailyGoal: { type: Number, default: 3 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
